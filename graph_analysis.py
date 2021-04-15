@@ -39,6 +39,17 @@ def rem(g: nx.MultiGraph) -> None:
                         g.add_edge(neigh[0], neigh[1], label=edge_label)
                         
 
+def sort_distances(l):
+    p=l[0]
+    sorted_locations = []
+    for i in range(len(l)):
+          
+        dist= pow((p[0] - l[i][0]), 2)+ pow((p[1] - l[i][1]), 2)
+          
+        sorted_locations.append([dist,[l[i][0],l[i][1]]])
+          
+    sorted_locations.sort()
+    return sorted_locations
 
 G = nx.MultiGraph()
 pos = nx.spring_layout(G)
@@ -53,6 +64,7 @@ G.add_nodes_from(df_routes.linkid.unique())
 node_attrib=df_routes.groupby('linkid')['Average_Daily_SeniorPopulation_Travelling'].apply(sum)
 nx.set_node_attributes(G, node_attrib,'elderly')
 df_routes.groupby('IDRoute').apply(lambda x: connect_routes(x['IDRoute'], x, G))
+
 
 rem(G)
 rem(G)

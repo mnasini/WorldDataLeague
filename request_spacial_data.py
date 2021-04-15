@@ -14,7 +14,8 @@ from IPython.display import Image, display
 from graphviz import Source
 
 df_senior = pd.read_csv('data/Senior_TIM_v1.txt', encoding= 'unicode_escape',sep="|")
-df_senior=df_senior.groupby("linkid")
+
+
 
 def pos(linkid):
    res=requests.get("https://s.fleet.ls.hereapi.com/1/index.json?layer=ROAD_GEOM_FCn&attributes=LINK_ID&values=&"+linkid+"apiKey=poqpzod8l70ttWkLZ1N9CJjbex7lpWc3G2JVTEClgjY")
