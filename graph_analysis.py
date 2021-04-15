@@ -35,9 +35,15 @@ def rem(g: nx.MultiGraph) -> None:
 G = nx.MultiGraph()
 pos = nx.spring_layout(G)
 df_routes = pd.read_csv('data/BusRoutes.txt', encoding= 'unicode_escape',sep="|")
+df_senior = pd.read_csv('data/Senior_TIM_v1.txt', encoding= 'unicode_escape',sep="|")
 df_routes=df_routes.set_index('IDRoute').loc[1:20].reset_index()
-
+df_routes=df_routes.rename_axis(None)
+df_aggreg=df_senior.groupby('linkid').apply(sum).drop(columns=['Region_of_Origin', 'District_of_Origin','County_of_Origin'])
+df_aggreg=df_aggreg.rename_axis(None)
+df_routes=df_routes.merge(df_aggreg,how='left',left_on='linkid',right_on='linkid')
 G.add_nodes_from(df_routes.linkid.unique())
+node_attrib=df_routes.groupby('linkid')['Average_Daily_SeniorPopulation_Travelling'].apply(sum)
+nx.set_node_attributes(G, node_attrib,'elderly')
 df_routes.groupby('IDRoute').apply(lambda x: connect_routes(x['IDRoute'], x, G))
 
 rem(G)
@@ -67,6 +73,11 @@ colors=color_list()
 for i, edge in enumerate(p.get_edges()):
     edge.set_color(colors[int(edge.get("label"))])
 
+
+map_weight=dict(zip(nx.get_node_attributes(G,'elderly').keys(),map(lambda x: (((x - 0) / (2000-0)) * (1-0.2) + 0.2)+1,nx.get_node_attributes(G,'elderly').values())))
+for i, node in enumerate(p.get_nodes()):
+    node.set_height(str(map_weight[int(node.get_name())]))
+    node.set_width(str(map_weight[int(node.get_name())]))
 
 p.write_png('multi.png')
 Image(filename='multi.png')
