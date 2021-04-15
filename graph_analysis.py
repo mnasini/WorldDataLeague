@@ -17,9 +17,11 @@ def connect_routes(lab, lst, g: nx.MultiGraph):
             g.add_edge(links[i], links[i+1], label=lab.iloc[0])
 
 def rem(g: nx.MultiGraph) -> None:
+    node_attributes=nx.get_node_attributes(G,'elderly')
     nodes = list(g.nodes)
     for node in nodes:
         neigh=list(g.neighbors(node))
+        
         if len(neigh) == 2 and (g.degree(node) % 2) == 0:
             try:
                 set1 = {edge['label'] for edge in g.get_edge_data(node, neigh[0]).values()}
@@ -27,16 +29,22 @@ def rem(g: nx.MultiGraph) -> None:
                 print(g.get_edge_data(node, neigh[0]))
             set2 = {edge['label'] for edge in g.get_edge_data(node, neigh[1]).values()}
             if set1 == set2:
-                g.remove_node(node)
-                for edge_label in set1:
-                    g.add_edge(neigh[0], neigh[1], label=edge_label)
+                #prec=node_attributes[neigh[0]]+0.001
+                succ=node_attributes[neigh[1]]+0.001
+                node_attr=node_attributes[node]+0.001
+               # if (abs((node_attr-prec))<1000) and (abs((node_attr-succ))<1000):
+                if (abs((node_attr-succ))<1000):
+                    g.remove_node(node)
+                    for edge_label in set1:
+                        g.add_edge(neigh[0], neigh[1], label=edge_label)
+                        
 
 
 G = nx.MultiGraph()
 pos = nx.spring_layout(G)
 df_routes = pd.read_csv('data/BusRoutes.txt', encoding= 'unicode_escape',sep="|")
 df_senior = pd.read_csv('data/Senior_TIM_v1.txt', encoding= 'unicode_escape',sep="|")
-df_routes=df_routes.set_index('IDRoute').loc[1:20].reset_index()
+df_routes=df_routes.set_index('IDRoute').loc[1:2].reset_index()
 df_routes=df_routes.rename_axis(None)
 df_aggreg=df_senior.groupby('linkid').apply(sum).drop(columns=['Region_of_Origin', 'District_of_Origin','County_of_Origin'])
 df_aggreg=df_aggreg.rename_axis(None)
