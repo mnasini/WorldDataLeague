@@ -35,7 +35,7 @@ def rem(g: nx.MultiGraph) -> None:
                # if (abs((node_attr-prec))<1000) and (abs((node_attr-succ))<1000):
                 if (abs((node_attr-succ))<1000):
                     g.remove_node(node)
-                    for edge_label in set1:
+                    for edge_label in set1: 
                         g.add_edge(neigh[0], neigh[1], label=edge_label)
                         
 
