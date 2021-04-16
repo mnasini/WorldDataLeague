@@ -39,17 +39,22 @@ def rem(g: nx.MultiGraph) -> None:
                         g.add_edge(neigh[0], neigh[1], label=edge_label)
                         
 
-def sort_distances(l):
+def sort_distances(df):
+    subset=df[['linkid','x', 'y']]
+    l = list(subset.itertuples(index=False,name=None))
     p=l[0]
+    
+    
     sorted_locations = []
     for i in range(len(l)):
           
-        dist= pow((p[0] - l[i][0]), 2)+ pow((p[1] - l[i][1]), 2)
+        dist= pow((p[1] - l[i][1]), 2)+ pow((p[2] - l[i][2]), 2)
           
-        sorted_locations.append([dist,[l[i][0],l[i][1]]])
+        sorted_locations.append([dist,[l[i][0],l[i][1],l[i][2]]])
           
     sorted_locations.sort()
-    return sorted_locations
+    
+    return list(map(lambda x: x[1][0],sorted_locations))
 
 G = nx.MultiGraph()
 pos = nx.spring_layout(G)
@@ -63,8 +68,10 @@ df_routes=df_routes.rename_axis(None)
 df_aggreg=df_senior.groupby('linkid').apply(sum).drop(columns=['Region_of_Origin', 'District_of_Origin','County_of_Origin'])
 df_aggreg=df_aggreg.rename_axis(None)
 df_routes=df_routes.merge(df_aggreg,how='left',left_on='linkid',right_on='linkid')
+df_routes=df_routes.merge(df_loc,how='left',left_on='linkid',right_on='linkid')
+nod=sort_distances(df_routes)
 
-G.add_nodes_from(df_routes.linkid.unique())
+G.add_nodes_from(nod)
 node_attrib=df_routes.groupby('linkid')['Average_Daily_SeniorPopulation_Travelling'].apply(sum)
 nx.set_node_attributes(G, node_attrib,'elderly')
 df_routes.groupby('IDRoute').apply(lambda x: connect_routes(x['IDRoute'], x, G))
