@@ -35,7 +35,8 @@ for i in range(len(unique_ids)):
     except:
         coords.append(None)
 
-x, y = zip(*coords)
+coords1=list(map(lambda x:x if x!=None else (0,0),coords))
+x, y = zip(*coords1)
 
 new_df = pd.DataFrame({"linkid": unique_ids, "x": x, "y": y})
 new_df.to_csv("geospatial_data.csv")
