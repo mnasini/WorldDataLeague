@@ -14,7 +14,7 @@ import graphviz
 from IPython.display import Image, display
 from graphviz import Source
 
-df_senior = pd.read_csv('data/Senior_TIM_v1.txt', encoding= 'unicode_escape',sep="|")
+df_senior = pd.read_csv('data/BusRoutes.txt', encoding= 'unicode_escape',sep="|")
 
 
 def pos(linkid):
@@ -31,12 +31,15 @@ coords = []
 for i in range(len(unique_ids)):
     try:
         ids = unique_ids[i]   
-        coords.append(pos(ids)) 
+        coords.append(pos(ids))
+        print(i)
+        print(coords[i])
     except:
         coords.append(None)
+        print(coords[i])
 
 coords1=list(map(lambda x:x if x!=None else (0,0),coords))
 x, y = zip(*coords1)
 
 new_df = pd.DataFrame({"linkid": unique_ids, "x": x, "y": y})
-new_df.to_csv("geospatial_data.csv")
+new_df.to_csv("geospatial_data_bus.csv")

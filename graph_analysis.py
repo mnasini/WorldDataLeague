@@ -55,11 +55,15 @@ G = nx.MultiGraph()
 pos = nx.spring_layout(G)
 df_routes = pd.read_csv('data/BusRoutes.txt', encoding= 'unicode_escape',sep="|")
 df_senior = pd.read_csv('data/Senior_TIM_v1.txt', encoding= 'unicode_escape',sep="|")
-df_routes=df_routes.set_index('IDRoute').loc[1:2].reset_index()
+df_loc = pd.read_csv("geospatial_data_bus.csv")
+
+#df_loc_aggreg=df_loc.groupby(["x","y"]).sum().drop(columns=['linkid'])  937 unique locations
+df_routes=df_routes.set_index('IDRoute').loc[1:1].reset_index()
 df_routes=df_routes.rename_axis(None)
 df_aggreg=df_senior.groupby('linkid').apply(sum).drop(columns=['Region_of_Origin', 'District_of_Origin','County_of_Origin'])
 df_aggreg=df_aggreg.rename_axis(None)
 df_routes=df_routes.merge(df_aggreg,how='left',left_on='linkid',right_on='linkid')
+
 G.add_nodes_from(df_routes.linkid.unique())
 node_attrib=df_routes.groupby('linkid')['Average_Daily_SeniorPopulation_Travelling'].apply(sum)
 nx.set_node_attributes(G, node_attrib,'elderly')
