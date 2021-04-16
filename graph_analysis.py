@@ -7,6 +7,7 @@ import graphviz
 from IPython.display import Image, display
 from graphviz import Source
 
+
 def connect_routes(lab, lst, g: nx.MultiGraph):
     links = list(lst.linkid)
     if len(links) == 0:
@@ -57,31 +58,49 @@ def sort_distances(df):
     return list(map(lambda x: x[1][0],sorted_locations))
 
 G = nx.MultiGraph()
-pos = nx.spring_layout(G)
 df_routes = pd.read_csv('data/BusRoutes.txt', encoding= 'unicode_escape',sep="|")
 df_senior = pd.read_csv('data/Senior_TIM_v1.txt', encoding= 'unicode_escape',sep="|")
+df_loc_anz=pd.read_csv("geospatial_data.csv")
 df_loc = pd.read_csv("geospatial_data_bus.csv")
-
+df_routes=df_routes[df_routes.IDRoute.isin([1,2])]
 #df_loc_aggreg=df_loc.groupby(["x","y"]).sum().drop(columns=['linkid'])  937 unique locations
-df_routes=df_routes.set_index('IDRoute').loc[1:1].reset_index()
-df_routes=df_routes.rename_axis(None)
+
+
 df_aggreg=df_senior.groupby('linkid').apply(sum).drop(columns=['Region_of_Origin', 'District_of_Origin','County_of_Origin'])
 df_aggreg=df_aggreg.rename_axis(None)
 df_routes=df_routes.merge(df_aggreg,how='left',left_on='linkid',right_on='linkid')
 df_routes=df_routes.merge(df_loc,how='left',left_on='linkid',right_on='linkid')
 nod=sort_distances(df_routes)
 
+df_aggreg_nobus=df_aggreg[df_aggreg.Average_Daily_SeniorPopulation_Travelling>1000]
+df_aggreg_nobus=df_aggreg_nobus[~df_aggreg_nobus.linkid.isin(df_routes.linkid)]
+df_aggreg_nobus=df_aggreg_nobus.merge(df_loc_anz,how='inner',left_on='linkid',right_on='linkid')
+
+nod_senior=sort_distances(df_aggreg_nobus)
+
 G.add_nodes_from(nod)
+#G.add_nodes_from(nod_senior)
 node_attrib=df_routes.groupby('linkid')['Average_Daily_SeniorPopulation_Travelling'].apply(sum)
+node_attrib_sen=df_aggreg_nobus["Average_Daily_SeniorPopulation_Travelling"]
 nx.set_node_attributes(G, node_attrib,'elderly')
+node_attrib1={t.linkid: (t.x, t.y) for t in df_routes.itertuples()}
+
+nx.set_node_attributes(G,node_attrib,'elderly')
+#nx.set_node_attributes(G,node_attrib_sen,'elderly')
 df_routes.groupby('IDRoute').apply(lambda x: connect_routes(x['IDRoute'], x, G))
 
 
-rem(G)
-rem(G)
-rem(G)
-rem(G)
-rem(G)
+
+
+nx.draw(G,pos=node_attrib1)
+
+
+
+
+
+
+
+
 
 #pos = nx.drawing.nx_pydot.graphviz_layout(G)
 ##nx.draw(G, pos, node_size=1, edge_color=list(labels.values()),connectionstyle="arc3,rad=3")
